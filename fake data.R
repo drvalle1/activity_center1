@@ -1,16 +1,19 @@
 rm(list=ls(all=TRUE))
-set.seed(5)
+set.seed(8)
 
 #basic setup
 n.tsegm=400
 n.ac=6
-n.grid=30
+n.grid=100
 n=floor(runif(n.tsegm,min=0,max=900))
 
-#spatial coordinates
+#spatial coordinates of locations
 grid.coord=data.frame(x=runif(n.grid,min=0,max=100),
                       y=runif(n.grid,min=0,max=100))
-ac.coord.true=ac.coord=expand.grid(x=c(25,50,75),y=c(30,60))
+
+#spatial coordinates of activity centers
+ac.coord.true=ac.coord=data.frame(x=runif(n.ac,min=0,max=100),
+                                  y=runif(n.ac,min=0,max=100))
 
 rangox=range(c(ac.coord$x,grid.coord$x))
 rangoy=range(c(ac.coord$y,grid.coord$y))
@@ -38,7 +41,7 @@ for (i in 1:n.tsegm){
   #draw results
   y[i,]=rmultinom(1,size=n[i],prob=prob)
 }
-image(y[z==5,])
+image(y[z==3,])
 
 setwd('U:\\GIT_models\\activity_center1')
 write.csv(y,'fake data.csv',row.names=F)

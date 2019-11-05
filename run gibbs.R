@@ -1,5 +1,5 @@
 rm(list=ls(all=TRUE))
-set.seed(10)
+set.seed(11)
 
 #read important functions
 setwd('U:\\GIT_models\\activity_center1')
@@ -18,7 +18,7 @@ nburn=ngibbs/2
 n.ac=10
 gamma1=0.1
 
-#initial coordinates (define this based on data instead of uninformative as below)
+#initial coordinates for activity centers (define this based on data instead of uninformative as below)
 ac.coord.init=data.frame(x=runif(n.ac,min=0,max=100),
                          y=runif(n.ac,min=0,max=100))
 

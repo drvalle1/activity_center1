@@ -39,13 +39,13 @@ IntegerVector rmultinom1(NumericMatrix prob, NumericVector randu) {
 // [[Rcpp::export]]
 NumericMatrix GetDistance(NumericMatrix AcCoord,NumericMatrix GridCoord, int Ngrid, int Nac) {
   
-  NumericMatrix res(Ngrid,Nac);
+  NumericMatrix res(Nac,Ngrid);
   double x2;
   double y2;
-  for(int i=0; i<Ngrid;i++){
-    for(int j=0; j<Nac; j++){
-      x2=pow(GridCoord(i,0)-AcCoord(j,0),2.0);
-      y2=pow(GridCoord(i,1)-AcCoord(j,1),2.0);
+  for(int i=0; i<Nac;i++){
+    for(int j=0; j<Ngrid; j++){
+      x2=pow(GridCoord(j,0)-AcCoord(i,0),2.0);
+      y2=pow(GridCoord(j,1)-AcCoord(i,1),2.0);
       res(i,j)=sqrt(x2+y2);
     }
   }

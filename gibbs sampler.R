@@ -9,7 +9,8 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1){
   z=sample(1:n.ac,size=n.tsegm,replace=T) #cluster membership
   phi=0.0001 #distance decay parameter
   theta=rep(1/n.ac,n.ac)
-  
+  dist.mat=GetDistance(AcCoord=ac.coord,GridCoord=grid.coord,Ngrid=n.grid,Nac=n.ac) 
+    
   #matrices to store results
   store.coord=matrix(NA,ngibbs,n.ac*2)
   store.z=matrix(NA,ngibbs,n.tsegm)
@@ -27,24 +28,25 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1){
     print(i)
     
     #sample coordinates
-    tmp=sample.coord(ac.coord=ac.coord,jump=jump1$coord,dat=dat,
-                     grid.coord=grid.coord,z=z,n.ac=n.ac,n.grid=n.grid,phi=phi)
+    tmp=sample.coord(ac.coord=ac.coord,log.theta=log(theta),phi=phi,dist.mat=dist.mat,
+                     n.ac=n.ac,n.grid=n.grid,n.tsegm=n.tsegm,
+                     jump=jump1$coord,dat=dat,grid.coord=grid.coord)
     ac.coord=tmp$ac.coord
     accept1$coord=accept1$coord+tmp$accept
+    dist.mat=tmp$dist.mat
     # ac.coord=ac.coord.true
     
     #sample phi
-    tmp=sample.phi(ac.coord=ac.coord,grid.coord=grid.coord,n.grid=n.grid,
-                   n.ac=n.ac,phi=phi,jump=jump1$phi,dat=dat,z=z)
+    tmp=sample.phi(n.grid=n.grid,n.ac=n.ac,n.tsegm=n.tsegm,
+                   phi=phi,dist.mat=dist.mat,log.theta=log(theta),
+                   jump=jump1$phi,dat=dat)
     phi=tmp$phi
     accept1$phi=accept1$phi+tmp$accept
-    logl=tmp$logl
-    # phi=phi.true
-    
+
     #sample z
-    z=sample.z(ac.coord=ac.coord,grid.coord=grid.coord,phi=phi,
-               n.grid=n.grid,n.ac=n.ac,n.tsegm=n.tsegm,dat=dat,
-               log.theta=log(theta))
+    z=sample.z(dist.mat=dist.mat,phi=phi,log.theta=log(theta),
+               n.grid=n.grid,n.ac=n.ac,n.tsegm=n.tsegm,
+               dat=dat)
     # z=z.true
     
     #sample theta
@@ -56,25 +58,30 @@ gibbs.activity.center=function(dat,grid.coord,n.ac,ac.coord.init,gamma1){
       theta[j]=v[j]*tmp
       tmp=tmp*(1-v[j])
     } 
-      
+    
+    #calculate loglikelihood
+    logl=get.loglikel(z=z,dist.mat=dist.mat,phi=phi,
+                      n.grid=n.grid,
+                      dat=dat)
+
     if (i<nburn & i%%adaptMH==0){
       #adapt MH
       tmp=print.adapt(accept1z=accept1,jump1z=jump1,accept.output=adaptMH)
       jump1=tmp$jump1
-      if (jump1$phi<0.01) jump1$phi=0.01
-      cond=jump1$coord<2; jump1$coord[cond]=2
       accept1=tmp$accept1
       
       #re-order data from time to time according to theta (largest to smallest)
       ordem=order(theta,decreasing=T)
-      znew=rep(NA,n.tsegm)
+      theta=theta[ordem]
       ac.coord=ac.coord[ordem,]
+      dist.mat=GetDistance(AcCoord=ac.coord,GridCoord=grid.coord,Ngrid=n.grid,Nac=n.ac) 
+      
+      znew=rep(NA,n.tsegm)
       for (j in 1:n.ac){
         cond=z==ordem[j]
         if (sum(cond)>0) znew[cond]=j
       }
       z=znew 
-      theta=theta[ordem]
     }
     
     #store results
